@@ -203,11 +203,37 @@ sudo chmod 600 /etc/ssl/private/leto-meet.exe.xyz.key
 sudo chmod 644 /etc/ssl/certs/leto-meet.exe.xyz.crt
 ```
 
+#### Option C: HTTP Only (No SSL)
+
+⚠️ **For local development/testing only** - Not secure for production!
+
+If you want to test nginx setup without dealing with SSL certificates first:
+
+```bash
+# Use the HTTP-only nginx configuration
+# No certificate setup needed!
+
+# Skip to step 2 and use nginx-proxy-http.conf instead
+# Then use update-urls-nginx-http.sh script (see step 3)
+```
+
+**Advantages:**
+- Faster to set up (no certificates needed)
+- Good for testing nginx routing
+- Works on local networks without DNS
+
+**Disadvantages:**
+- ⚠️ No encryption (credentials sent in plain text)
+- ⚠️ Not suitable for production
+- ⚠️ Browser security warnings for modern features
+
 ### 2. Configure Nginx
 
-#### Update nginx-proxy.conf with your certificate paths
+Choose the appropriate configuration based on your certificate choice:
 
-If using Let's Encrypt, edit `nginx-proxy.conf`:
+#### For HTTPS (Let's Encrypt or Self-Signed)
+
+**If using Let's Encrypt**, edit `nginx-proxy.conf`:
 
 ```bash
 # Edit the SSL certificate paths
@@ -220,17 +246,33 @@ ssl_certificate /etc/letsencrypt/live/leto-meet.exe.xyz/fullchain.pem;
 ssl_certificate_key /etc/letsencrypt/live/leto-meet.exe.xyz/privkey.pem;
 ```
 
-If using self-signed, the paths are already correct:
+**If using self-signed**, the paths in `nginx-proxy.conf` are already correct:
 ```nginx
 ssl_certificate /etc/ssl/certs/leto-meet.exe.xyz.crt;
 ssl_certificate_key /etc/ssl/private/leto-meet.exe.xyz.key;
 ```
 
-#### Install nginx configuration
+Install the HTTPS configuration:
 
 ```bash
-# Copy config to nginx sites-available
+# Copy HTTPS config to nginx sites-available
 sudo cp nginx-proxy.conf /etc/nginx/sites-available/meet
+```
+
+#### For HTTP Only (No SSL)
+
+**If testing without SSL**, use the HTTP-only configuration:
+
+```bash
+# Copy HTTP-only config to nginx sites-available
+sudo cp nginx-proxy-http.conf /etc/nginx/sites-available/meet
+```
+
+#### Enable Nginx Site
+
+```bash
+# Enable the site (same for both HTTP and HTTPS)
+sudo ln -s /etc/nginx/sites-available/meet /etc/nginx/sites-enabled/
 
 # Enable the site
 sudo ln -s /etc/nginx/sites-available/meet /etc/nginx/sites-enabled/
@@ -256,26 +298,44 @@ sudo systemctl reload nginx
 
 ### 3. Update Application URLs
 
-Run the URL update script to configure path-based routing:
+Run the appropriate URL update script based on your setup:
+
+#### For HTTPS Setup
 
 ```bash
 # Make script executable if not already
 chmod +x update-urls-nginx.sh
 
-# Run the script
+# Run the HTTPS script
 ./update-urls-nginx.sh
 ```
 
-This updates:
-- `env.d/development/common` - Backend URLs
-- `src/frontend/.env.development` - Frontend API URL
-- `compose.yml` - Keycloak and frontend build args
-
-The script will show you the new URL structure:
+This configures URLs with `https://`:
 - Frontend: `https://leto-meet.exe.xyz/`
 - Backend: `https://leto-meet.exe.xyz/api/`
 - Keycloak: `https://leto-meet.exe.xyz/auth/`
 - LiveKit: `https://leto-meet.exe.xyz/livekit/`
+
+#### For HTTP-Only Setup
+
+```bash
+# Make script executable if not already
+chmod +x update-urls-nginx-http.sh
+
+# Run the HTTP script
+./update-urls-nginx-http.sh
+```
+
+This configures URLs with `http://` (no SSL):
+- Frontend: `http://leto-meet.exe.xyz/`
+- Backend: `http://leto-meet.exe.xyz/api/`
+- Keycloak: `http://leto-meet.exe.xyz/auth/`
+- LiveKit: `http://leto-meet.exe.xyz/livekit/`
+
+**Both scripts update:**
+- `env.d/development/common` - Backend URLs
+- `src/frontend/.env.development` - Frontend API URL
+- `compose.yml` - Keycloak and frontend build args
 
 ### 4. Rebuild Frontend with New URLs
 
@@ -664,8 +724,12 @@ print(json.dumps({
 meet/
 ├── Makefile                      # Build and run commands
 ├── compose.yml                   # Docker services definition
-├── nginx-proxy.conf              # Nginx reverse proxy config
-├── update-urls-nginx.sh          # URL configuration script
+├── nginx-proxy.conf              # Nginx HTTPS reverse proxy config
+├── nginx-proxy-http.conf         # Nginx HTTP-only config (no SSL)
+├── update-urls-nginx.sh          # URL configuration script (HTTPS)
+├── update-urls-nginx-http.sh     # URL configuration script (HTTP)
+├── SETUP.md                      # This guide
+├── nginx-setup-guide.md          # Detailed nginx guide
 ├── env.d/development/
 │   ├── common                    # Main app configuration
 │   ├── postgresql                # Database credentials
@@ -679,6 +743,10 @@ meet/
     ├── media/                    # Uploaded files
     └── static/                   # Static assets
 ```
+
+**Nginx Configuration Files:**
+- `nginx-proxy.conf` - Use for HTTPS with SSL certificates
+- `nginx-proxy-http.conf` - Use for HTTP without SSL (development/testing only)
 
 ### Essential Commands Cheatsheet
 
