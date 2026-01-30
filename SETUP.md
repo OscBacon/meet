@@ -229,6 +229,12 @@ If you want to test nginx setup without dealing with SSL certificates first:
 
 ### 2. Configure Nginx
 
+**Ports Used:**
+- HTTP: Port **9080** (instead of standard port 80)
+- HTTPS: Port **9443** (instead of standard port 443)
+
+Using non-standard ports avoids requiring root/sudo privileges for nginx and prevents conflicts with other web servers.
+
 Choose the appropriate configuration based on your certificate choice:
 
 #### For HTTPS (Let's Encrypt or Self-Signed)
@@ -310,11 +316,11 @@ chmod +x update-urls-nginx.sh
 ./update-urls-nginx.sh
 ```
 
-This configures URLs with `https://`:
-- Frontend: `https://leto-meet.exe.xyz/`
-- Backend: `https://leto-meet.exe.xyz/api/`
-- Keycloak: `https://leto-meet.exe.xyz/auth/`
-- LiveKit: `https://leto-meet.exe.xyz/livekit/`
+This configures URLs with `https://` on port 9443:
+- Frontend: `https://leto-meet.exe.xyz:9443/`
+- Backend: `https://leto-meet.exe.xyz:9443/api/`
+- Keycloak: `https://leto-meet.exe.xyz:9443/auth/`
+- LiveKit: `https://leto-meet.exe.xyz:9443/livekit/`
 
 #### For HTTP-Only Setup
 
@@ -326,11 +332,11 @@ chmod +x update-urls-nginx-http.sh
 ./update-urls-nginx-http.sh
 ```
 
-This configures URLs with `http://` (no SSL):
-- Frontend: `http://leto-meet.exe.xyz/`
-- Backend: `http://leto-meet.exe.xyz/api/`
-- Keycloak: `http://leto-meet.exe.xyz/auth/`
-- LiveKit: `http://leto-meet.exe.xyz/livekit/`
+This configures URLs with `http://` on port 9080 (no SSL):
+- Frontend: `http://leto-meet.exe.xyz:9080/`
+- Backend: `http://leto-meet.exe.xyz:9080/api/`
+- Keycloak: `http://leto-meet.exe.xyz:9080/auth/`
+- LiveKit: `http://leto-meet.exe.xyz:9080/livekit/`
 
 **Both scripts update:**
 - `env.d/development/common` - Backend URLs
@@ -362,20 +368,20 @@ make status
 
 Keycloak needs to know about the new URLs:
 
-1. Access Keycloak admin console: `https://leto-meet.exe.xyz/auth`
+1. Access Keycloak admin console: `https://leto-meet.exe.xyz:9443/auth` (or `:9080` for HTTP)
 2. Login with default credentials:
    - Username: `admin`
    - Password: `admin`
 3. Navigate to: **Realms → meet → Clients → meet**
-4. Update the following settings:
+4. Update the following settings (use port 9443 for HTTPS or 9080 for HTTP):
 
    ```
-   Root URL: https://leto-meet.exe.xyz
-   Home URL: https://leto-meet.exe.xyz
-   Valid Redirect URIs: https://leto-meet.exe.xyz/*
-   Valid post logout redirect URIs: https://leto-meet.exe.xyz/*
-   Web Origins: https://leto-meet.exe.xyz
-   Admin URL: https://leto-meet.exe.xyz
+   Root URL: https://leto-meet.exe.xyz:9443
+   Home URL: https://leto-meet.exe.xyz:9443
+   Valid Redirect URIs: https://leto-meet.exe.xyz:9443/*
+   Valid post logout redirect URIs: https://leto-meet.exe.xyz:9443/*
+   Web Origins: https://leto-meet.exe.xyz:9443
+   Admin URL: https://leto-meet.exe.xyz:9443
    ```
 
 5. Click **Save**
@@ -476,21 +482,21 @@ sudo tail -f /var/log/nginx/access.log
 
 ```bash
 # Test frontend (should return HTML)
-curl -I https://leto-meet.exe.xyz/
+curl -I https://leto-meet.exe.xyz:9443/
 
 # Test backend API (should return JSON config)
-curl https://leto-meet.exe.xyz/api/v1.0/config/
+curl https://leto-meet.exe.xyz:9443/api/v1.0/config/
 
 # Test Keycloak (should return HTML)
-curl -I https://leto-meet.exe.xyz/auth/
+curl -I https://leto-meet.exe.xyz:9443/auth/
 
 # Test health endpoints
-curl https://leto-meet.exe.xyz/api/__heartbeat__
+curl https://leto-meet.exe.xyz:9443/api/__heartbeat__
 ```
 
 ### 3. Browser Testing
 
-1. **Frontend**: Open `https://leto-meet.exe.xyz/`
+1. **Frontend**: Open `https://leto-meet.exe.xyz:9443/`
    - Should see the Meet login page
    - No console errors (press F12)
 
@@ -575,7 +581,7 @@ sudo certbot renew
 
 # Check certificate expiry
 echo | openssl s_client -servername leto-meet.exe.xyz \
-  -connect leto-meet.exe.xyz:443 2>/dev/null | \
+  -connect leto-meet.exe.xyz:9443 2>/dev/null | \
   openssl x509 -noout -dates
 ```
 
@@ -662,11 +668,11 @@ docker compose logs -f livekit
 # Verify LiveKit URL in env.d/development/common
 grep LIVEKIT_API_URL env.d/development/common
 
-# Should be: LIVEKIT_API_URL=https://leto-meet.exe.xyz/livekit
+# Should be: LIVEKIT_API_URL=https://leto-meet.exe.xyz:9443/livekit
 
 # Check firewall allows WebSocket connections
 sudo ufw status
-sudo ufw allow 443/tcp
+sudo ufw allow 9443/tcp
 ```
 
 ### Ports Already in Use
@@ -711,12 +717,14 @@ print(json.dumps({
 
 ### URL Structure
 
-| Service | URL | Port (Internal) |
-|---------|-----|-----------------|
-| Frontend | https://leto-meet.exe.xyz/ | 3000 |
-| Backend API | https://leto-meet.exe.xyz/api/ | 8071 |
-| Keycloak | https://leto-meet.exe.xyz/auth/ | 8083 |
-| LiveKit | https://leto-meet.exe.xyz/livekit/ | 7880 |
+| Service | External URL | Nginx Port | Internal Port |
+|---------|--------------|------------|---------------|
+| Nginx (HTTP) | http://leto-meet.exe.xyz:9080 | 9080 | - |
+| Nginx (HTTPS) | https://leto-meet.exe.xyz:9443 | 9443 | - |
+| Frontend | :9443/ | via nginx | 3000 |
+| Backend API | :9443/api/ | via nginx | 8071 |
+| Keycloak | :9443/auth/ | via nginx | 8083 |
+| LiveKit | :9443/livekit/ | via nginx | 7880 |
 
 ### Important Files
 
@@ -836,9 +844,9 @@ docker compose restart keycloak
 5. **Set up firewall**:
    ```bash
    sudo ufw enable
-   sudo ufw allow 80/tcp
-   sudo ufw allow 443/tcp
-   sudo ufw allow 22/tcp
+   sudo ufw allow 9080/tcp  # HTTP
+   sudo ufw allow 9443/tcp  # HTTPS
+   sudo ufw allow 22/tcp    # SSH
    ```
 
 6. **Enable HTTPS redirect** in Django (already in Production config)
