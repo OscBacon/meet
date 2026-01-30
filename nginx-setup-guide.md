@@ -71,11 +71,14 @@ sudo cp nginx-proxy.conf /etc/nginx/sites-available/meet
 # Update SSL certificate paths in the config if needed
 sudo nano /etc/nginx/sites-available/meet
 
+# Remove existing symlink if it exists (prevents ln errors)
+sudo rm -f /etc/nginx/sites-enabled/meet
+
 # Enable the site
 sudo ln -s /etc/nginx/sites-available/meet /etc/nginx/sites-enabled/
 
 # Remove default site (optional)
-sudo rm /etc/nginx/sites-enabled/default
+sudo rm -f /etc/nginx/sites-enabled/default
 
 # Test configuration
 sudo nginx -t
@@ -238,6 +241,7 @@ sudo certbot --nginx -d leto-meet.exe.xyz
 
 # 2. Setup nginx
 sudo cp nginx-proxy.conf /etc/nginx/sites-available/meet
+sudo rm -f /etc/nginx/sites-enabled/meet
 sudo ln -s /etc/nginx/sites-available/meet /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
