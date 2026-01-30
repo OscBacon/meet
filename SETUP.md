@@ -278,13 +278,13 @@ sudo cp nginx-proxy-http.conf /etc/nginx/sites-available/meet
 
 ```bash
 # Remove existing symlink if it exists (prevents ln errors)
-sudo rm -f /etc/nginx/sites-enabled/meet
+sudo rm /etc/nginx/sites-enabled/meet
 
 # Enable the site
 sudo ln -s /etc/nginx/sites-available/meet /etc/nginx/sites-enabled/
 
 # Disable default site
-sudo rm -f /etc/nginx/sites-enabled/default
+sudo rm /etc/nginx/sites-enabled/default
 
 # Test configuration
 sudo nginx -t
