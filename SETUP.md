@@ -317,7 +317,7 @@ chmod +x update-urls-nginx.sh
 ```
 
 This configures URLs with `https://` on port 9443:
-- Frontend: `https://leto-meet.exe.xyz:9443/`
+- Frontend: `https://leto-meet.exe.xyz:9443/meet`
 - Backend: `https://leto-meet.exe.xyz:9443/api/`
 - Keycloak: `https://leto-meet.exe.xyz:9443/auth/`
 - LiveKit: `https://leto-meet.exe.xyz:9443/livekit/`
@@ -333,7 +333,7 @@ chmod +x update-urls-nginx-http.sh
 ```
 
 This configures URLs with `http://` on port 9080 (no SSL):
-- Frontend: `http://leto-meet.exe.xyz:9080/`
+- Frontend: `http://leto-meet.exe.xyz:9080/meet`
 - Backend: `http://leto-meet.exe.xyz:9080/api/`
 - Keycloak: `http://leto-meet.exe.xyz:9080/auth/`
 - LiveKit: `http://leto-meet.exe.xyz:9080/livekit/`
@@ -376,12 +376,12 @@ Keycloak needs to know about the new URLs:
 4. Update the following settings (use port 9443 for HTTPS or 9080 for HTTP):
 
    ```
-   Root URL: https://leto-meet.exe.xyz:9443
-   Home URL: https://leto-meet.exe.xyz:9443
-   Valid Redirect URIs: https://leto-meet.exe.xyz:9443/*
-   Valid post logout redirect URIs: https://leto-meet.exe.xyz:9443/*
+   Root URL: https://leto-meet.exe.xyz:9443/meet
+   Home URL: https://leto-meet.exe.xyz:9443/meet
+   Valid Redirect URIs: https://leto-meet.exe.xyz:9443/meet/*
+   Valid post logout redirect URIs: https://leto-meet.exe.xyz:9443/meet/*
    Web Origins: https://leto-meet.exe.xyz:9443
-   Admin URL: https://leto-meet.exe.xyz:9443
+   Admin URL: https://leto-meet.exe.xyz:9443/meet
    ```
 
 5. Click **Save**
@@ -496,7 +496,7 @@ curl https://leto-meet.exe.xyz:9443/api/__heartbeat__
 
 ### 3. Browser Testing
 
-1. **Frontend**: Open `https://leto-meet.exe.xyz:9443/`
+1. **Frontend**: Open `https://leto-meet.exe.xyz:9443/meet`
    - Should see the Meet login page
    - No console errors (press F12)
 
@@ -721,7 +721,7 @@ print(json.dumps({
 |---------|--------------|------------|---------------|
 | Nginx (HTTP) | http://leto-meet.exe.xyz:9080 | 9080 | - |
 | Nginx (HTTPS) | https://leto-meet.exe.xyz:9443 | 9443 | - |
-| Frontend | :9443/ | via nginx | 3000 |
+| Frontend | :9443/meet | via nginx | 3000 |
 | Backend API | :9443/api/ | via nginx | 8071 |
 | Keycloak | :9443/auth/ | via nginx | 8083 |
 | LiveKit | :9443/livekit/ | via nginx | 7880 |

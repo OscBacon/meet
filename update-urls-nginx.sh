@@ -34,7 +34,7 @@ echo -e "${YELLOW}Updating $BACKEND_ENV for nginx proxy...${NC}"
 # Email settings
 sed -i "s|DJANGO_EMAIL_LOGO_IMG=.*|DJANGO_EMAIL_LOGO_IMG=$BASE_URL/assets/logo-suite-numerique.png|g" "$BACKEND_ENV"
 sed -i "s|DJANGO_EMAIL_DOMAIN=.*|DJANGO_EMAIL_DOMAIN=$DOMAIN|g" "$BACKEND_ENV"
-sed -i "s|DJANGO_EMAIL_APP_BASE_URL=.*|DJANGO_EMAIL_APP_BASE_URL=$BASE_URL|g" "$BACKEND_ENV"
+sed -i "s|DJANGO_EMAIL_APP_BASE_URL=.*|DJANGO_EMAIL_APP_BASE_URL=$BASE_URL/meet|g" "$BACKEND_ENV"
 
 # Backend URL (no port, uses /api path)
 sed -i "s|MEET_BASE_URL=.*|MEET_BASE_URL=\"$BASE_URL\"|g" "$BACKEND_ENV"
@@ -44,9 +44,9 @@ sed -i "s|OIDC_OP_AUTHORIZATION_ENDPOINT=.*|OIDC_OP_AUTHORIZATION_ENDPOINT=$BASE
 sed -i "s|OIDC_OP_URL=.*|OIDC_OP_URL=$BASE_URL/auth/realms/meet|g" "$BACKEND_ENV"
 
 # Login/Logout redirects
-sed -i "s|LOGIN_REDIRECT_URL=.*|LOGIN_REDIRECT_URL=$BASE_URL|g" "$BACKEND_ENV"
-sed -i "s|LOGIN_REDIRECT_URL_FAILURE=.*|LOGIN_REDIRECT_URL_FAILURE=$BASE_URL|g" "$BACKEND_ENV"
-sed -i "s|LOGOUT_REDIRECT_URL=.*|LOGOUT_REDIRECT_URL=$BASE_URL|g" "$BACKEND_ENV"
+sed -i "s|LOGIN_REDIRECT_URL=.*|LOGIN_REDIRECT_URL=$BASE_URL/meet|g" "$BACKEND_ENV"
+sed -i "s|LOGIN_REDIRECT_URL_FAILURE=.*|LOGIN_REDIRECT_URL_FAILURE=$BASE_URL/meet|g" "$BACKEND_ENV"
+sed -i "s|LOGOUT_REDIRECT_URL=.*|LOGOUT_REDIRECT_URL=$BASE_URL/meet|g" "$BACKEND_ENV"
 
 # OIDC allowed hosts (no ports needed)
 sed -i "s|OIDC_REDIRECT_ALLOWED_HOSTS=.*|OIDC_REDIRECT_ALLOWED_HOSTS=$DOMAIN|g" "$BACKEND_ENV"
@@ -88,7 +88,7 @@ echo -e "${GREEN}✓ Configuration updated for nginx reverse proxy!${NC}"
 echo -e "${BLUE}════════════════════════════════════════════════════════════════${NC}\n"
 
 echo -e "${YELLOW}URL Structure:${NC}"
-echo -e "  Frontend:  ${BLUE}$BASE_URL/${NC}"
+echo -e "  Frontend:  ${BLUE}$BASE_URL/meet${NC}"
 echo -e "  Backend:   ${BLUE}$BASE_URL/api/${NC}"
 echo -e "  Keycloak:  ${BLUE}$BASE_URL/auth/${NC}"
 echo -e "  LiveKit:   ${BLUE}$BASE_URL/livekit/${NC}"
